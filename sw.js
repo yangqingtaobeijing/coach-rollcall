@@ -1,4 +1,4 @@
-const CACHE_NAME = "coach-rollcall-v4";
+const CACHE_NAME = "coach-rollcall-v5";
 const ASSETS = [
   "./",
   "./index.html",

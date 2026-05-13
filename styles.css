@@ -456,7 +456,7 @@ tr:last-child td {
 
 .person-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px;
   gap: 8px;
 }
 
@@ -479,12 +479,13 @@ tr:last-child td {
 }
 
 .dial-button {
-  min-width: 58px;
+  min-width: 72px;
   display: grid;
   place-items: center;
   color: #fff;
   text-decoration: none;
-  background: var(--navy);
+  white-space: nowrap;
+  background: var(--green);
 }
 
 .empty-state {
@@ -541,7 +542,7 @@ tr:last-child td {
   }
 
   .person-actions {
-    grid-template-columns: 1fr 1fr 56px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px;
   }
 }
 
