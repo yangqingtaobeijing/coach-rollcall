@@ -1,474 +1,261 @@
 (function () {
-  const STORAGE_KEY = "coach-rollcall:v1";
-  const STATUS = {
-    pending: "未点",
-    arrived: "已到",
-    absent: "未到"
+  const CHECKLIST_KEY = "earthquake-guide:checks:v1";
+
+  const scenarios = {
+    city: {
+      title: "城市街区",
+      visual: "玻璃、招牌、车流是主要风险",
+      risks: ["玻璃幕墙", "广告牌", "高空坠物", "拥挤道路"],
+      during: [
+        "如果在室内，立即趴下、掩护、稳住，远离窗户和外墙。",
+        "如果在室外，迅速移动到空旷处，避开楼体外立面、路灯、树木、电线杆和围墙。",
+        "在人群密集处不要逆行奔跑，保护头颈，沿安全方向缓慢移动。"
+      ],
+      after: [
+        "震动停止后再撤离，避开玻璃碎片、坠落物和受损外墙。",
+        "不要围观受损建筑、燃气泄漏点和救援通道。",
+        "关注当地官方应急信息，按社区或现场人员指引前往避难场所。"
+      ],
+      warning: [
+        "不要躲在建筑物门口、广告牌下、天桥下或狭窄巷道内。",
+        "闻到燃气味时不要开关电器或使用明火，撤离后报警。"
+      ]
+    },
+    rural: {
+      title: "农村与山区",
+      visual: "房屋结构、山体和河岸要重点判断",
+      risks: ["土坯房", "山体滑坡", "落石", "堰塞湖"],
+      during: [
+        "在室内时先就地避险，远离土墙、房梁、炉灶和悬挂物。",
+        "若身处空旷院落，避开围墙、牲畜棚、柴草垛、电线和老旧附属房。",
+        "在山坡、崖边、沟谷时尽快向开阔高处移动，远离落石路线。"
+      ],
+      after: [
+        "不要立即返回裂缝明显、墙体倾斜或屋顶受损的房屋。",
+        "检查燃气罐、柴火、取暖设备和电线，避免次生火灾。",
+        "暴雨或河水异常上涨时，警惕滑坡、泥石流和堰塞湖风险。"
+      ],
+      warning: [
+        "老旧土木结构房屋余震中更容易倒塌。",
+        "山区道路可能被落石阻断，撤离时不要贴山体行走。"
+      ]
+    },
+    highrise: {
+      title: "高层建筑",
+      visual: "先稳住，再走楼梯有序撤离",
+      risks: ["长周期摇晃", "电梯停运", "玻璃坠落", "楼梯拥堵"],
+      during: [
+        "不要冲向楼梯或电梯，先在结实桌下、承重墙附近或内侧角落保护头颈。",
+        "远离落地窗、阳台、外墙、吊灯、柜体和大型屏幕。",
+        "如果在电梯内，按下所有楼层按钮，停靠后立即离开电梯。"
+      ],
+      after: [
+        "震动停止后穿鞋，带应急包，从安全楼梯撤离。",
+        "不要使用电梯，不要在楼梯间推挤或停留拍摄。",
+        "下楼后远离建筑外墙，防止玻璃和外立面材料坠落。"
+      ],
+      warning: [
+        "高层摇晃时间可能更长，不代表建筑必然倒塌。",
+        "若楼梯间受损或有浓烟，退回相对安全区域等待救援。"
+      ]
+    },
+    lowrise: {
+      title: "低层建筑",
+      visual: "判断出口距离，但不冒险穿越危险区",
+      risks: ["砖墙倒塌", "屋顶坠落", "烟囱水塔", "门廊结构"],
+      during: [
+        "如果距离安全出口很近且外部开阔，可快速到空旷处；否则先就地避险。",
+        "室内避开外墙、窗户、柜子、炉具和可能倒塌的隔墙。",
+        "不要躲在门框下，现代建筑门框并不一定更安全。"
+      ],
+      after: [
+        "震停后从安全出口撤离，避开瓦片、烟囱、围墙和电线。",
+        "关闭火源和燃气，确认家人情况后转移到空旷处。",
+        "房屋出现明显裂缝、倾斜、异响时不要返回。"
+      ],
+      warning: [
+        "低层建筑不等于安全，未经抗震设防的砖混、土木结构风险更高。",
+        "余震前不要在受损房屋内清点财物。"
+      ]
+    },
+    vehicle: {
+      title: "驾车或公交",
+      visual: "停车避开桥隧、电线和高架",
+      risks: ["桥梁高架", "隧道", "交通事故", "道路塌陷"],
+      during: [
+        "驾驶时缓慢减速，靠路边安全处停车，避开桥梁、高架、隧道、山体和电线。",
+        "停车后拉手刹，留在车内，打开应急灯，等待强震结束。",
+        "公交或地铁内抓牢扶手，听从工作人员指挥，不擅自破窗或跳车。"
+      ],
+      after: [
+        "确认道路状况后再行驶，避开裂缝、积水、塌方和救援通道。",
+        "如果车辆被困，保留电量，用手机、喇叭、灯光或哨子求助。",
+        "收听交通广播或官方通告，不盲目驶向灾区核心区域。"
+      ],
+      warning: [
+        "不要停在桥下、高架下、楼体旁、树下或电线杆旁。",
+        "震后道路承载能力可能下降，不要强行通过受损桥梁。"
+      ]
+    },
+    coast: {
+      title: "沿海地区",
+      visual: "强震后立即考虑海啸撤离",
+      risks: ["海啸", "港口设施", "液化地基", "堤岸坍塌"],
+      during: [
+        "先完成就地避险，保护头颈，远离玻璃和重物。",
+        "如果强震持续时间长或站立困难，震后立即向高处或内陆撤离。",
+        "在港口、码头、海滩、河口附近，不要留下观察海面变化。"
+      ],
+      after: [
+        "沿海啸疏散标识前往高地，优先步行，避免道路拥堵。",
+        "等待官方解除海啸警报后再返回海边或港口。",
+        "远离液化喷砂、岸坡裂缝和受损堤防。"
+      ],
+      warning: [
+        "海水异常退去可能是危险信号，不是捡拾海产品的机会。",
+        "第一波海啸不一定最大，警报解除前不要返回。"
+      ]
+    }
   };
 
-  const state = {
-    title: "",
-    people: [],
-    filter: "all",
-    search: "",
-    draftRows: [],
-    draftHeaders: [],
-    deferredInstallPrompt: null
-  };
+  const scenarioCard = document.getElementById("scenarioCard");
+  const tabButtons = document.querySelectorAll("[data-scenario]");
+  const checklistInputs = document.querySelectorAll("[data-check]");
+  const backTopButton = document.getElementById("backTopButton");
 
-  const els = {
-    setupPanel: document.getElementById("setupPanel"),
-    mappingPanel: document.getElementById("mappingPanel"),
-    rollcallPanel: document.getElementById("rollcallPanel"),
-    excelInput: document.getElementById("excelInput"),
-    pasteInput: document.getElementById("pasteInput"),
-    parsePasteButton: document.getElementById("parsePasteButton"),
-    hasHeaderCheckbox: document.getElementById("hasHeaderCheckbox"),
-    nameColumn: document.getElementById("nameColumn"),
-    phoneColumn: document.getElementById("phoneColumn"),
-    idColumn: document.getElementById("idColumn"),
-    previewTable: document.querySelector("#previewTable tbody"),
-    cancelImportButton: document.getElementById("cancelImportButton"),
-    confirmImportButton: document.getElementById("confirmImportButton"),
-    groupTitle: document.getElementById("groupTitle"),
-    saveState: document.getElementById("saveState"),
-    stats: document.getElementById("stats"),
-    searchInput: document.getElementById("searchInput"),
-    peopleList: document.getElementById("peopleList"),
-    emptyState: document.getElementById("emptyState"),
-    clearRoundButton: document.getElementById("clearRoundButton"),
-    showImportButton: document.getElementById("showImportButton"),
-    markVisibleArrivedButton: document.getElementById("markVisibleArrivedButton"),
-    installButton: document.getElementById("installButton"),
-    toast: document.getElementById("toast")
-  };
-
-  let saveTimer = 0;
-  let toastTimer = 0;
+  let animationFrame = 0;
 
   init();
 
   function init() {
-    loadState();
-    bindEvents();
+    bindScenarioTabs();
+    bindChecklist();
+    bindBackTop();
+    renderScenario("city");
+    startSeismograph();
     registerServiceWorker();
-    render();
   }
 
-  function bindEvents() {
-    els.excelInput.addEventListener("change", handleFileImport);
-    els.parsePasteButton.addEventListener("click", handlePasteImport);
-    els.hasHeaderCheckbox.addEventListener("change", () => {
-      buildColumnOptions();
-      renderPreview();
-    });
-    [els.nameColumn, els.phoneColumn, els.idColumn].forEach((select) => {
-      select.addEventListener("change", renderPreview);
-    });
-    els.cancelImportButton.addEventListener("click", resetImport);
-    els.confirmImportButton.addEventListener("click", confirmImport);
-    els.groupTitle.addEventListener("input", () => {
-      state.title = els.groupTitle.value.trim();
-      persistSoon();
-    });
-    els.searchInput.addEventListener("input", () => {
-      state.search = els.searchInput.value.trim();
-      renderPeople();
-    });
-    document.querySelectorAll(".segmented button").forEach((button) => {
+  function bindScenarioTabs() {
+    tabButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        state.filter = button.dataset.filter;
-        renderFilterButtons();
-        renderPeople();
+        const id = button.dataset.scenario;
+        tabButtons.forEach((item) => {
+          const active = item === button;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-selected", String(active));
+        });
+        renderScenario(id);
       });
     });
-    els.clearRoundButton.addEventListener("click", clearRound);
-    els.showImportButton.addEventListener("click", () => {
-      els.setupPanel.hidden = false;
+  }
+
+  function bindChecklist() {
+    const saved = readChecks();
+    checklistInputs.forEach((input) => {
+      input.checked = saved.includes(input.dataset.check);
+      input.addEventListener("change", saveChecks);
+    });
+  }
+
+  function bindBackTop() {
+    backTopButton.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    els.markVisibleArrivedButton.addEventListener("click", markVisibleArrived);
-    els.peopleList.addEventListener("click", handlePeopleClick);
-    els.installButton.addEventListener("click", installApp);
-    window.addEventListener("beforeinstallprompt", (event) => {
-      event.preventDefault();
-      state.deferredInstallPrompt = event;
-      els.installButton.hidden = false;
-    });
   }
 
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      state.title = saved.title || "";
-      state.people = Array.isArray(saved.people) ? saved.people : [];
-    } catch (error) {
-      showToast("本地数据读取失败，请重新导入名单");
-    }
-  }
-
-  function persistSoon() {
-    clearTimeout(saveTimer);
-    els.saveState.textContent = "正在保存...";
-    saveTimer = window.setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        title: state.title,
-        people: state.people
-      }));
-      els.saveState.textContent = "已保存在本机";
-    }, 140);
-  }
-
-  function render() {
-    const hasPeople = state.people.length > 0;
-    els.setupPanel.hidden = hasPeople;
-    els.rollcallPanel.hidden = !hasPeople;
-    els.mappingPanel.hidden = true;
-    els.groupTitle.value = state.title || "";
-    renderStats();
-    renderFilterButtons();
-    renderPeople();
-  }
-
-  async function handleFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(firstSheet, {
-        header: 1,
-        defval: "",
-        blankrows: false
-      });
-      prepareDraft(rows, file.name.replace(/\.[^.]+$/, ""));
-    } catch (error) {
-      showToast("Excel 解析失败，请确认文件格式正确");
-    } finally {
-      event.target.value = "";
-    }
-  }
-
-  function handlePasteImport() {
-    const text = els.pasteInput.value.trim();
-    if (!text) {
-      showToast("请先粘贴表格内容");
-      return;
-    }
-    prepareDraft(parsePastedTable(text), "");
-  }
-
-  function prepareDraft(rows, defaultTitle) {
-    const cleanRows = rows
-      .map((row) => row.map((cell) => normalizeCell(cell)))
-      .filter((row) => row.some(Boolean));
-
-    if (cleanRows.length < 1) {
-      showToast("没有识别到有效名单");
-      return;
-    }
-
-    state.draftRows = cleanRows;
-    state.draftHeaders = cleanRows[0];
-    if (!state.title && defaultTitle) {
-      state.title = defaultTitle;
-    }
-
-    buildColumnOptions();
-    renderPreview();
-    els.setupPanel.hidden = true;
-    els.mappingPanel.hidden = false;
-    els.rollcallPanel.hidden = true;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function buildColumnOptions() {
-    const headers = getCurrentHeaders();
-    [els.nameColumn, els.phoneColumn, els.idColumn].forEach((select) => {
-      select.innerHTML = "";
-      headers.forEach((header, index) => {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = `${columnName(index)} ${header || "空列"}`;
-        select.appendChild(option);
-      });
-    });
-
-    els.nameColumn.value = String(guessColumn(headers, ["姓名", "游客", "旅客", "客户", "name"], 0));
-    els.phoneColumn.value = String(guessColumn(headers, ["手机", "电话", "联系方式", "mobile", "phone", "tel"], 1));
-    els.idColumn.value = String(guessColumn(headers, ["身份证", "证件", "证号", "id"], 2));
-  }
-
-  function renderPreview() {
-    const rows = buildPeopleFromDraft().slice(0, 8);
-    els.previewTable.innerHTML = "";
-    rows.forEach((person) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${escapeHtml(person.name)}</td>
-        <td>${escapeHtml(person.phone)}</td>
-        <td>${escapeHtml(person.idLast4)}</td>
-      `;
-      els.previewTable.appendChild(tr);
-    });
-  }
-
-  function confirmImport() {
-    const people = buildPeopleFromDraft();
-    if (!people.length) {
-      showToast("没有可用人员，请检查字段选择");
-      return;
-    }
-
-    state.people = people;
-    state.title = state.title || "本次点名";
-    state.search = "";
-    els.searchInput.value = "";
-    els.pasteInput.value = "";
-    els.mappingPanel.hidden = true;
-    els.rollcallPanel.hidden = false;
-    els.setupPanel.hidden = true;
-    els.groupTitle.value = state.title;
-    persistSoon();
-    renderStats();
-    renderPeople();
-    showToast(`已导入 ${people.length} 人`);
-  }
-
-  function buildPeopleFromDraft() {
-    const start = els.hasHeaderCheckbox.checked ? 1 : 0;
-    const nameIndex = Number(els.nameColumn.value);
-    const phoneIndex = Number(els.phoneColumn.value);
-    const idIndex = Number(els.idColumn.value);
-
-    return state.draftRows
-      .slice(start)
-      .map((row, index) => {
-        const name = normalizeName(row[nameIndex]);
-        const phone = normalizePhone(row[phoneIndex]);
-        const idNumber = normalizeId(row[idIndex]);
-        return {
-          id: makeId(name, phone, idNumber, index),
-          name,
-          phone,
-          idLast4: idNumber.slice(-4),
-          status: "pending"
-        };
-      })
-      .filter((person) => person.name || person.phone);
-  }
-
-  function resetImport() {
-    state.draftRows = [];
-    state.draftHeaders = [];
-    els.mappingPanel.hidden = true;
-    els.setupPanel.hidden = false;
-  }
-
-  function clearRound() {
-    if (!state.people.length) return;
-    const ok = window.confirm("清空本轮点名标记？名单会保留。");
-    if (!ok) return;
-    state.people = state.people.map((person) => ({ ...person, status: "pending" }));
-    state.filter = "all";
-    persistSoon();
-    renderStats();
-    renderFilterButtons();
-    renderPeople();
-    showToast("本轮标记已清空");
-  }
-
-  function markVisibleArrived() {
-    const visibleIds = new Set(getVisiblePeople().map((person) => person.id));
-    if (!visibleIds.size) return;
-    if (visibleIds.size > 1) {
-      const ok = window.confirm(`将当前列表 ${visibleIds.size} 人全部设为已到？`);
-      if (!ok) return;
-    }
-    state.people = state.people.map((person) => (
-      visibleIds.has(person.id) ? { ...person, status: "arrived" } : person
-    ));
-    persistSoon();
-    renderStats();
-    renderPeople();
-    showToast(`已将当前列表 ${visibleIds.size} 人设为已到`);
-  }
-
-  function handlePeopleClick(event) {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
-    const row = button.closest("[data-id]");
-    const personId = row && row.dataset.id;
-    if (!personId) return;
-    const action = button.dataset.action;
-
-    if (action === "arrived" || action === "absent") {
-      updatePersonStatus(personId, action);
-    }
-  }
-
-  function updatePersonStatus(personId, nextStatus) {
-    state.people = state.people.map((person) => {
-      if (person.id !== personId) return person;
-      return {
-        ...person,
-        status: person.status === nextStatus ? "pending" : nextStatus
-      };
-    });
-    persistSoon();
-    renderStats();
-    renderPeople();
-  }
-
-  function renderStats() {
-    const total = state.people.length;
-    const arrived = state.people.filter((person) => person.status === "arrived").length;
-    const absent = state.people.filter((person) => person.status === "absent").length;
-    const pending = state.people.filter((person) => person.status === "pending").length;
-    const stats = [
-      ["总人数", total],
-      ["已到", arrived],
-      ["未到", absent],
-      ["未点", pending]
-    ];
-    els.stats.innerHTML = stats.map(([label, value]) => `
-      <div class="stat">
-        <strong>${value}</strong>
-        <span>${label}</span>
+  function renderScenario(id) {
+    const scenario = scenarios[id];
+    scenarioCard.innerHTML = `
+      <div class="scenario-visual">
+        <strong>${escapeHtml(scenario.visual)}</strong>
       </div>
-    `).join("");
-  }
-
-  function renderFilterButtons() {
-    document.querySelectorAll(".segmented button").forEach((button) => {
-      button.classList.toggle("active", button.dataset.filter === state.filter);
-    });
-  }
-
-  function renderPeople() {
-    const people = getVisiblePeople();
-    els.peopleList.innerHTML = "";
-    els.emptyState.hidden = people.length > 0;
-
-    const fragment = document.createDocumentFragment();
-    people.forEach((person) => {
-      const row = document.createElement("article");
-      row.className = "person-row";
-      row.dataset.id = person.id;
-      row.innerHTML = `
-        <div class="person-main">
-          <div>
-            <div class="person-name">${escapeHtml(person.name || "未命名")}</div>
-            <div class="person-meta">
-              <span>${escapeHtml(person.phone || "无手机号")}</span>
-              <span>身份证后四位 ${escapeHtml(person.idLast4 || "----")}</span>
-            </div>
-          </div>
-          <span class="badge ${person.status}">${STATUS[person.status]}</span>
+      <div class="scenario-content">
+        <div>
+          <p class="eyebrow">当前场景</p>
+          <h3>${escapeHtml(scenario.title)}</h3>
         </div>
-        <div class="person-actions">
-          <button class="status-button arrived ${person.status === "arrived" ? "active" : ""}" data-action="arrived">已到</button>
-          <button class="status-button absent ${person.status === "absent" ? "active" : ""}" data-action="absent">未到</button>
-          <a class="dial-button" href="${person.phone ? `tel:${encodeURIComponent(person.phone)}` : "#"}" aria-label="拨打 ${escapeHtml(person.name)} 电话">拨号</a>
+        <div class="risk-meter">
+          ${scenario.risks.map((risk) => `<span>${escapeHtml(risk)}</span>`).join("")}
         </div>
-      `;
-      fragment.appendChild(row);
-    });
-    els.peopleList.appendChild(fragment);
+        <div class="action-columns">
+          ${renderActionBlock("震时动作", scenario.during)}
+          ${renderActionBlock("震后撤离", scenario.after)}
+          ${renderActionBlock("特别风险", scenario.warning)}
+        </div>
+      </div>
+    `;
   }
 
-  function getVisiblePeople() {
-    const keyword = state.search.toLowerCase();
-    return state.people.filter((person) => {
-      const byFilter = state.filter === "all" || person.status === state.filter;
-      const haystack = `${person.name} ${person.phone} ${person.idLast4}`.toLowerCase();
-      return byFilter && (!keyword || haystack.includes(keyword));
-    });
+  function renderActionBlock(title, items) {
+    return `
+      <div>
+        <h4>${escapeHtml(title)}</h4>
+        <ul>
+          ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        </ul>
+      </div>
+    `;
   }
 
-  function parsePastedTable(text) {
-    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
-    const delimiter = text.includes("\t") ? "\t" : ",";
-    return lines.map((line) => delimiter === "\t" ? line.split("\t") : parseCsvLine(line));
-  }
+  function startSeismograph() {
+    const canvas = document.getElementById("seismoCanvas");
+    if (!canvas) return;
+    const context = canvas.getContext("2d");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function parseCsvLine(line) {
-    const cells = [];
-    let current = "";
-    let quoted = false;
-    for (let index = 0; index < line.length; index += 1) {
-      const char = line[index];
-      const next = line[index + 1];
-      if (char === '"' && quoted && next === '"') {
-        current += '"';
-        index += 1;
-      } else if (char === '"') {
-        quoted = !quoted;
-      } else if (char === "," && !quoted) {
-        cells.push(current);
-        current = "";
-      } else {
-        current += char;
+    function draw(time) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerY = height * 0.52;
+      context.clearRect(0, 0, width, height);
+      context.lineWidth = 4;
+      context.strokeStyle = "#d6a642";
+      context.beginPath();
+
+      for (let x = 0; x <= width; x += 4) {
+        const phase = (x * 0.028) + (time * 0.006);
+        const burst = Math.sin((x + time * 0.04) * 0.018) > 0.55 ? 1.8 : 0.6;
+        const amplitude = (16 + 46 * Math.sin(x * 0.012) ** 2) * burst;
+        const y = centerY + Math.sin(phase) * amplitude + Math.sin(phase * 2.6) * 12;
+        if (x === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      }
+
+      context.shadowColor = "rgba(214, 166, 66, 0.55)";
+      context.shadowBlur = 18;
+      context.stroke();
+      context.shadowBlur = 0;
+
+      if (!reducedMotion) {
+        animationFrame = requestAnimationFrame(draw);
       }
     }
-    cells.push(current);
-    return cells;
+
+    draw(0);
   }
 
-  function getCurrentHeaders() {
-    if (!state.draftRows.length) return [];
-    if (els.hasHeaderCheckbox.checked) {
-      return state.draftRows[0];
+  function readChecks() {
+    try {
+      const raw = localStorage.getItem(CHECKLIST_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (error) {
+      return [];
     }
-    const maxColumns = Math.max(...state.draftRows.map((row) => row.length));
-    return Array.from({ length: maxColumns }, (_, index) => columnName(index));
   }
 
-  function guessColumn(headers, candidates, fallback) {
-    const index = headers.findIndex((header) => {
-      const normalized = String(header).trim().toLowerCase();
-      return candidates.some((candidate) => normalized.includes(candidate.toLowerCase()));
+  function saveChecks() {
+    const checked = Array.from(checklistInputs)
+      .filter((input) => input.checked)
+      .map((input) => input.dataset.check);
+    localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checked));
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
     });
-    if (index >= 0) return index;
-    return Math.min(fallback, Math.max(headers.length - 1, 0));
-  }
-
-  function normalizeCell(cell) {
-    if (cell == null) return "";
-    return String(cell).trim();
-  }
-
-  function normalizeName(value) {
-    return normalizeCell(value).replace(/\s+/g, "");
-  }
-
-  function normalizePhone(value) {
-    const text = normalizeCell(value);
-    const match = text.match(/(?:\+?86[- ]?)?1[3-9]\d{9}/);
-    return match ? match[0].replace(/^\+?86[- ]?/, "") : text.replace(/[^\d+]/g, "");
-  }
-
-  function normalizeId(value) {
-    return normalizeCell(value).replace(/\s/g, "").toUpperCase();
-  }
-
-  function makeId(name, phone, idNumber, index) {
-    return `${name || "n"}-${phone || "p"}-${idNumber.slice(-6) || index}-${index}`;
-  }
-
-  function columnName(index) {
-    let n = index + 1;
-    let name = "";
-    while (n > 0) {
-      const remainder = (n - 1) % 26;
-      name = String.fromCharCode(65 + remainder) + name;
-      n = Math.floor((n - 1) / 26);
-    }
-    return name;
   }
 
   function escapeHtml(value) {
@@ -480,29 +267,7 @@
       .replace(/'/g, "&#039;");
   }
 
-  function showToast(message) {
-    clearTimeout(toastTimer);
-    els.toast.textContent = message;
-    els.toast.hidden = false;
-    toastTimer = window.setTimeout(() => {
-      els.toast.hidden = true;
-    }, 2400);
-  }
-
-  async function installApp() {
-    if (!state.deferredInstallPrompt) return;
-    state.deferredInstallPrompt.prompt();
-    await state.deferredInstallPrompt.userChoice;
-    state.deferredInstallPrompt = null;
-    els.installButton.hidden = true;
-  }
-
-  function registerServiceWorker() {
-    if (!("serviceWorker" in navigator)) return;
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {
-        showToast("离线缓存注册失败，仍可在线使用");
-      });
-    });
-  }
+  window.addEventListener("beforeunload", () => {
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+  });
 }());

@@ -1,10 +1,10 @@
 {
-  "name": "车上点名",
-  "short_name": "点名",
+  "name": "地震避险行动指南",
+  "short_name": "地震避险",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#0d1b2a",
+  "background_color": "#f3efe5",
+  "theme_color": "#25322f",
   "icons": [
     {
       "src": "icons/icon.svg",

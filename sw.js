@@ -1,12 +1,11 @@
-const CACHE_NAME = "coach-rollcall-v5";
+const CACHE_NAME = "earthquake-guide-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./icons/icon.svg",
-  "./vendor/xlsx.full.min.js"
+  "./icons/icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
@@ -28,9 +27,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request);
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
